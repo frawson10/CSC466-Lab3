@@ -2,7 +2,11 @@ import java.io.*;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Scanner;  
+import java.util.Scanner;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 class InduceC45{
     public static void main(String[] args){
@@ -16,9 +20,9 @@ class InduceC45{
         D.remove(0);
         D.remove(0);
         D.remove(0);
-        double threshold = 0.2;
+        double threshold = 0.15;
         Node tree = c45(D, A, threshold, classVar);
-        System.out.println(tree.toString());
+        createJSON(tree, "adult-stretch.csv");
     }
 
     public static Node c45(ArrayList<ArrayList<String>> D, 
@@ -39,22 +43,22 @@ class InduceC45{
             }
         }
         if(purityFlag){
-            return new Node("", tempClassVar, null);
+            return new Node("", tempClassVar, null, 1);
         }
         // if no more atributes other than class var, choose most frequent label
         else if(A.get(0).size() <= 1){
-            String winner = popularityContest(D, A, classVarLoc);
-            return new Node("", winner, null);
+            Pair winner = popularityContest(D, A, classVarLoc);
+            return new Node("", winner.att, null, winner.popularity/Double.valueOf(D.size()));
         }
         // try split
         else{
             Integer splittingAtt = selectSplittingAttribute(D, A, threshold, classVarLoc);
             if(splittingAtt == null){
-                String winner = popularityContest(D, A, classVarLoc);
-                return new Node("", winner, null);
+                Pair winner = popularityContest(D, A, classVarLoc);
+                return new Node("", winner.att, null, winner.popularity/Double.valueOf(D.size()));
             } else {
                 //stuff after split
-                Node tree = new Node(A.get(0).get(splittingAtt), "", new ArrayList<>());
+                Node tree = new Node(A.get(0).get(splittingAtt), "", new ArrayList<>(), -1);
                 HashMap<String, ArrayList<ArrayList<String>>> splits = new HashMap<>();
                 for(ArrayList<String> point : D){
                     if(splits.get(point.get(splittingAtt)) == null){
@@ -104,7 +108,7 @@ class InduceC45{
         }
     }
 
-    public static String popularityContest(ArrayList<ArrayList<String>> D, 
+    public static Pair popularityContest(ArrayList<ArrayList<String>> D, 
     ArrayList<ArrayList<String>> A, int classVarLoc){
         HashMap<String, Integer> score = new HashMap<>();
         for(ArrayList<String> point : D){
@@ -118,10 +122,11 @@ class InduceC45{
         String leadingAtt = null;
         for(Map.Entry<String, Integer> set : score.entrySet()){
             if(set.getValue() > frontRunner){
+                frontRunner = set.getValue();
                 leadingAtt = set.getKey();
             }
         }
-        return leadingAtt;
+        return new Pair(leadingAtt, Double.valueOf(frontRunner));
     }
 
     public static double log(double num){
@@ -170,7 +175,7 @@ class InduceC45{
         Scanner sc;
         ArrayList<ArrayList<String>> data = new ArrayList<>();
         try {
-            sc = new Scanner(new File("adult-stretch.csv"));
+            sc = new Scanner(new File("agaricus-lepiota.csv"));
             while (sc.hasNextLine()){
                 ArrayList<String> lineVals = new ArrayList<>();
                 String[] line = sc.nextLine().split(",");
@@ -203,13 +208,29 @@ class InduceC45{
         }
         return restrictions;
     }
+
+    public static void createJSON(Node tree, String dataSetFile){
+        JSONObject json = new JSONObject();
+        try {
+            json.put("dataset", dataSetFile);
+            if(tree.edges != null){
+                json.put("node", tree.toJSON());
+            } else{
+                json.put("leaf", tree.toJSON());
+            }
+            System.out.println(json.toString(4));
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+    }
 }
 
 class Node{
     String attribute;
     String decision;
     ArrayList<Edge> edges;
-    public Node(String a, String d, ArrayList<Edge> l){
+    double p;
+    public Node(String a, String d, ArrayList<Edge> l, double p){
         if(a != ""){
             this.attribute = a;
         }
@@ -219,6 +240,7 @@ class Node{
         if(l != null){
             this.edges = l;
         }
+        this.p=p;
     }
 
     public void addEdge(String label, Node subtree){
@@ -232,6 +254,31 @@ class Node{
             return "Node: " + attribute + "\nedges: " + edges.toString();
         }
     }
+
+    public JSONObject toJSON(){
+        JSONObject json = new JSONObject();
+        try {
+            if(edges == null){
+                JSONObject leafJSON = new JSONObject();
+                leafJSON.put("decision", decision);
+                leafJSON.put("p", p);
+                return leafJSON;
+            } else{
+                JSONObject nodeJSON = new JSONObject();
+                nodeJSON.put("var", attribute);
+                JSONArray edgesArr = new JSONArray();
+                for(Edge e : edges){
+                    edgesArr.put(e.toJSON());
+                }
+                nodeJSON.put("edges", edgesArr);
+                return nodeJSON;
+            }
+            
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        return json;
+    }
 }
 
 class Edge{
@@ -244,5 +291,32 @@ class Edge{
 
     public String toString(){
         return "\n" + edge + " node: " + next.toString();
+    }
+
+    public JSONObject toJSON(){
+        JSONObject json = new JSONObject();
+        try {
+            JSONObject edgeJSON = new JSONObject();
+            edgeJSON.put("value", edge);
+            if(next.edges != null){
+                edgeJSON.put("node", next.toJSON());
+            } else{
+                edgeJSON.put("leaf", next.toJSON());
+            }
+            json.put("edge", edgeJSON);
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        return json;
+    }
+}
+
+class Pair{
+    String att;
+    double popularity;
+
+    public Pair(String a, double p){
+        this.att=a;
+        this.popularity=p;
     }
 }
