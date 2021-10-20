@@ -2,7 +2,11 @@ import java.io.*;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Scanner;  
+import java.util.Scanner;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 class InduceC45{
     public static void main(String[] args){
@@ -16,8 +20,9 @@ class InduceC45{
         D.remove(0);
         D.remove(0);
         D.remove(0);
-        double threshold = 0.3;
-        c45(D, A, threshold, classVar);
+        double threshold = 0.15;
+        Node tree = c45(D, A, threshold, classVar);
+        createJSON(tree, "adult-stretch.csv");
     }
 
     public static Node c45(ArrayList<ArrayList<String>> D, 
@@ -38,41 +43,72 @@ class InduceC45{
             }
         }
         if(purityFlag){
-            return new Node("", tempClassVar, null);
+            return new Node("", tempClassVar, null, 1);
         }
         // if no more atributes other than class var, choose most frequent label
         else if(A.get(0).size() <= 1){
-            String winner = popularityContest(D, A, classVarLoc);
-            return new Node("", winner, null);
+            Pair winner = popularityContest(D, A, classVarLoc);
+            return new Node("", winner.att, null, winner.popularity/Double.valueOf(D.size()));
         }
         // try split
         else{
             Integer splittingAtt = selectSplittingAttribute(D, A, threshold, classVarLoc);
             if(splittingAtt == null){
-                String winner = popularityContest(D, A, classVarLoc);
-                return new Node("", winner, null);
+                Pair winner = popularityContest(D, A, classVarLoc);
+                return new Node("", winner.att, null, winner.popularity/Double.valueOf(D.size()));
             } else {
                 //stuff after split
-                
+                Node tree = new Node(A.get(0).get(splittingAtt), "", new ArrayList<>(), -1);
+                HashMap<String, ArrayList<ArrayList<String>>> splits = new HashMap<>();
+                for(ArrayList<String> point : D){
+                    if(splits.get(point.get(splittingAtt)) == null){
+                        ArrayList<ArrayList<String>> temp = new ArrayList<>();
+                        splits.put(point.get(splittingAtt), temp);
+                    }
+                    ArrayList<ArrayList<String>> temp = splits.get(point.get(splittingAtt));
+                    temp.add(point);
+                    splits.put(point.get(splittingAtt), temp);
+                }
+                for(Map.Entry<String, ArrayList<ArrayList<String>>> set : splits.entrySet()){
+                    ArrayList<ArrayList<String>> newA = new ArrayList<>();
+                    for(ArrayList<String> a : A){
+                        newA.add(a);
+                    }
+                    newA.get(2).set(splittingAtt, "0");
+                    Node subTree = c45(set.getValue(), newA, threshold, classVar);
+                    tree.addEdge(set.getKey(), subTree);
+                }
+                return tree;
             }
         }
-        return null;
     }
 
     public static Integer selectSplittingAttribute(ArrayList<ArrayList<String>> D, 
     ArrayList<ArrayList<String>> A, double threshold, Integer classVarLoc){
         double p0 = baseEntropy(D, A, threshold, classVarLoc);
-        HashMap<Integer, Double> attEntropies = new HashMap<>();
+        HashMap<Integer, Double> gains = new HashMap<>();
         for(int i = 0; i < A.get(0).size(); i++){
             if(i == classVarLoc || A.get(2).get(i).equals("0")){
                 continue;
             }
-            attEntropies.put(i, attEntropy(D, A, threshold, classVarLoc, i));
+            gains.put(i, p0 - attEntropy(D, A, threshold, classVarLoc, i));
         }
-        return null;
+        double maxGain = -1;
+        int winningIdx = -1;
+        for(Map.Entry<Integer, Double> set : gains.entrySet()){
+            if(set.getValue() > maxGain){
+                maxGain = set.getValue();
+                winningIdx = set.getKey();
+            }
+        }
+        if(gains.get(winningIdx) > threshold){
+            return winningIdx;
+        } else{
+            return null;
+        }
     }
 
-    public static String popularityContest(ArrayList<ArrayList<String>> D, 
+    public static Pair popularityContest(ArrayList<ArrayList<String>> D, 
     ArrayList<ArrayList<String>> A, int classVarLoc){
         HashMap<String, Integer> score = new HashMap<>();
         for(ArrayList<String> point : D){
@@ -86,10 +122,11 @@ class InduceC45{
         String leadingAtt = null;
         for(Map.Entry<String, Integer> set : score.entrySet()){
             if(set.getValue() > frontRunner){
+                frontRunner = set.getValue();
                 leadingAtt = set.getKey();
             }
         }
-        return leadingAtt;
+        return new Pair(leadingAtt, Double.valueOf(frontRunner));
     }
 
     public static double log(double num){
@@ -116,15 +153,29 @@ class InduceC45{
 
     public static double attEntropy(ArrayList<ArrayList<String>> D,
     ArrayList<ArrayList<String>> A, double threshold, Integer classVarLoc, int attIdx){
-        
-        return 0;
+        HashMap<String, ArrayList<ArrayList<String>>> splits = new HashMap<>();
+        for(ArrayList<String> point : D){
+            if(splits.get(point.get(attIdx)) == null){
+                ArrayList<ArrayList<String>> temp = new ArrayList<>();
+                splits.put(point.get(attIdx), temp);
+            }
+            ArrayList<ArrayList<String>> temp = splits.get(point.get(attIdx));
+            temp.add(point);
+            splits.put(point.get(attIdx), temp);
+        }
+        double entropy = 0.0;
+        for(Map.Entry<String, ArrayList<ArrayList<String>>> set : splits.entrySet()){
+            double probability = Double.valueOf(set.getValue().size()) / Double.valueOf(D.size());
+            entropy += (probability * baseEntropy(set.getValue(), A, threshold, classVarLoc));
+        }
+        return entropy;
     }
 
     public static ArrayList<ArrayList<String>> getData(){
         Scanner sc;
         ArrayList<ArrayList<String>> data = new ArrayList<>();
         try {
-            sc = new Scanner(new File("adult-stretch.csv"));
+            sc = new Scanner(new File("agaricus-lepiota.csv"));
             while (sc.hasNextLine()){
                 ArrayList<String> lineVals = new ArrayList<>();
                 String[] line = sc.nextLine().split(",");
@@ -157,13 +208,29 @@ class InduceC45{
         }
         return restrictions;
     }
+
+    public static void createJSON(Node tree, String dataSetFile){
+        JSONObject json = new JSONObject();
+        try {
+            json.put("dataset", dataSetFile);
+            if(tree.edges != null){
+                json.put("node", tree.toJSON());
+            } else{
+                json.put("leaf", tree.toJSON());
+            }
+            System.out.println(json.toString(4));
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+    }
 }
 
 class Node {
     String attribute;
     String decision;
     ArrayList<Edge> edges;
-    public Node(String a, String d, ArrayList<Edge> l){
+    double p;
+    public Node(String a, String d, ArrayList<Edge> l, double p){
         if(a != ""){
             this.attribute = a;
         }
@@ -173,6 +240,44 @@ class Node {
         if(l != null){
             this.edges = l;
         }
+        this.p=p;
+    }
+
+    public void addEdge(String label, Node subtree){
+        this.edges.add(new Edge(label, subtree));
+    }
+
+    public String toString(){
+        if(edges == null){
+            return "\nLeaf: " + decision;
+        } else{
+            return "Node: " + attribute + "\nedges: " + edges.toString();
+        }
+    }
+
+    public JSONObject toJSON(){
+        JSONObject json = new JSONObject();
+        try {
+            if(edges == null){
+                JSONObject leafJSON = new JSONObject();
+                leafJSON.put("decision", decision);
+                leafJSON.put("p", p);
+                return leafJSON;
+            } else{
+                JSONObject nodeJSON = new JSONObject();
+                nodeJSON.put("var", attribute);
+                JSONArray edgesArr = new JSONArray();
+                for(Edge e : edges){
+                    edgesArr.put(e.toJSON());
+                }
+                nodeJSON.put("edges", edgesArr);
+                return nodeJSON;
+            }
+            
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        return json;
     }
 }
 
@@ -182,5 +287,36 @@ class Edge{
     public Edge(String e, Node n){
         this.edge = e;
         this.next = n;
+    }
+
+    public String toString(){
+        return "\n" + edge + " node: " + next.toString();
+    }
+
+    public JSONObject toJSON(){
+        JSONObject json = new JSONObject();
+        try {
+            JSONObject edgeJSON = new JSONObject();
+            edgeJSON.put("value", edge);
+            if(next.edges != null){
+                edgeJSON.put("node", next.toJSON());
+            } else{
+                edgeJSON.put("leaf", next.toJSON());
+            }
+            json.put("edge", edgeJSON);
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        return json;
+    }
+}
+
+class Pair{
+    String att;
+    double popularity;
+
+    public Pair(String a, double p){
+        this.att=a;
+        this.popularity=p;
     }
 }

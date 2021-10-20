@@ -14,7 +14,7 @@ class Classify{
         // parsing json file and typecasting to JSONObject
         JSONObject obj = (JSONObject) new JSONParser().parse(new FileReader(args[1]));
         JSONObject node1 = (JSONObject) obj.get("node");
-        Node n = new Node((String)node1.get("var"), "", (ArrayList<Edge>)node1.get("edges"));
+        Node n = new Node((String)node1.get("var"), "", (ArrayList<Edge>)node1.get("edges"), -1);
         ConfusionMatrix matrix = new ConfusionMatrix();
 
         // parsing csv file
@@ -80,7 +80,7 @@ class Classify{
                         isLeaf = true;
                     }
                     else { // if it is not a leaf node
-                        n = new Node(n.edges.get(i).next.attribute, "", n.edges.get(i).next.edges);
+                        n = new Node(n.edges.get(i).next.attribute, "", n.edges.get(i).next.edges, -1);
 
                     }
                 }
