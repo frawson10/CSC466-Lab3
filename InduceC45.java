@@ -16,8 +16,9 @@ class InduceC45{
         D.remove(0);
         D.remove(0);
         D.remove(0);
-        double threshold = 0.3;
-        c45(D, A, threshold, classVar);
+        double threshold = 0.2;
+        Node tree = c45(D, A, threshold, classVar);
+        System.out.println(tree.toString());
     }
 
     public static Node c45(ArrayList<ArrayList<String>> D, 
@@ -53,23 +54,54 @@ class InduceC45{
                 return new Node("", winner, null);
             } else {
                 //stuff after split
-                
+                Node tree = new Node(A.get(0).get(splittingAtt), "", new ArrayList<>());
+                HashMap<String, ArrayList<ArrayList<String>>> splits = new HashMap<>();
+                for(ArrayList<String> point : D){
+                    if(splits.get(point.get(splittingAtt)) == null){
+                        ArrayList<ArrayList<String>> temp = new ArrayList<>();
+                        splits.put(point.get(splittingAtt), temp);
+                    }
+                    ArrayList<ArrayList<String>> temp = splits.get(point.get(splittingAtt));
+                    temp.add(point);
+                    splits.put(point.get(splittingAtt), temp);
+                }
+                for(Map.Entry<String, ArrayList<ArrayList<String>>> set : splits.entrySet()){
+                    ArrayList<ArrayList<String>> newA = new ArrayList<>();
+                    for(ArrayList<String> a : A){
+                        newA.add(a);
+                    }
+                    newA.get(2).set(splittingAtt, "0");
+                    Node subTree = c45(set.getValue(), newA, threshold, classVar);
+                    tree.addEdge(set.getKey(), subTree);
+                }
+                return tree;
             }
         }
-        return null;
     }
 
     public static Integer selectSplittingAttribute(ArrayList<ArrayList<String>> D, 
     ArrayList<ArrayList<String>> A, double threshold, Integer classVarLoc){
         double p0 = baseEntropy(D, A, threshold, classVarLoc);
-        HashMap<Integer, Double> attEntropies = new HashMap<>();
+        HashMap<Integer, Double> gains = new HashMap<>();
         for(int i = 0; i < A.get(0).size(); i++){
             if(i == classVarLoc || A.get(2).get(i).equals("0")){
                 continue;
             }
-            attEntropies.put(i, attEntropy(D, A, threshold, classVarLoc, i));
+            gains.put(i, p0 - attEntropy(D, A, threshold, classVarLoc, i));
         }
-        return null;
+        double maxGain = -1;
+        int winningIdx = -1;
+        for(Map.Entry<Integer, Double> set : gains.entrySet()){
+            if(set.getValue() > maxGain){
+                maxGain = set.getValue();
+                winningIdx = set.getKey();
+            }
+        }
+        if(gains.get(winningIdx) > threshold){
+            return winningIdx;
+        } else{
+            return null;
+        }
     }
 
     public static String popularityContest(ArrayList<ArrayList<String>> D, 
@@ -116,8 +148,22 @@ class InduceC45{
 
     public static double attEntropy(ArrayList<ArrayList<String>> D,
     ArrayList<ArrayList<String>> A, double threshold, Integer classVarLoc, int attIdx){
-        
-        return 0;
+        HashMap<String, ArrayList<ArrayList<String>>> splits = new HashMap<>();
+        for(ArrayList<String> point : D){
+            if(splits.get(point.get(attIdx)) == null){
+                ArrayList<ArrayList<String>> temp = new ArrayList<>();
+                splits.put(point.get(attIdx), temp);
+            }
+            ArrayList<ArrayList<String>> temp = splits.get(point.get(attIdx));
+            temp.add(point);
+            splits.put(point.get(attIdx), temp);
+        }
+        double entropy = 0.0;
+        for(Map.Entry<String, ArrayList<ArrayList<String>>> set : splits.entrySet()){
+            double probability = Double.valueOf(set.getValue().size()) / Double.valueOf(D.size());
+            entropy += (probability * baseEntropy(set.getValue(), A, threshold, classVarLoc));
+        }
+        return entropy;
     }
 
     public static ArrayList<ArrayList<String>> getData(){
@@ -174,6 +220,18 @@ class Node{
             this.edges = l;
         }
     }
+
+    public void addEdge(String label, Node subtree){
+        this.edges.add(new Edge(label, subtree));
+    }
+
+    public String toString(){
+        if(edges == null){
+            return "\nLeaf: " + decision;
+        } else{
+            return "Node: " + attribute + "\nedges: " + edges.toString();
+        }
+    }
 }
 
 class Edge{
@@ -182,5 +240,9 @@ class Edge{
     public Edge(String e, Node n){
         this.edge = e;
         this.next = n;
+    }
+
+    public String toString(){
+        return "\n" + edge + " node: " + next.toString();
     }
 }
