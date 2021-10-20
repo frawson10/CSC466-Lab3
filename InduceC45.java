@@ -159,7 +159,7 @@ class InduceC45{
     }
 }
 
-class Node{
+class Node {
     String attribute;
     String decision;
     ArrayList<Edge> edges;
