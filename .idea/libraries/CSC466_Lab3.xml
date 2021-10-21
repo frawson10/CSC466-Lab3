@@ -3,6 +3,7 @@
     <CLASSES>
       <root url="jar://$PROJECT_DIR$/CSC466-Lab3.jar!/" />
       <root url="jar://$PROJECT_DIR$/lib/org.json.jar!/" />
+      <root url="jar://$USER_HOME$/Downloads/json-simple-1.1.jar (1)/json-simple-1.1.jar!/" />
     </CLASSES>
     <JAVADOC />
     <SOURCES />

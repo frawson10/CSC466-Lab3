@@ -1,0 +1,64 @@
+
+
+java:S1319Á"pThe return type of this method should be an interface such as "List" rather than the implementation "ArrayList".(Óâ¦ß8À»éÉ/
+s	java:S117‰"QRename this local variable to match the regular expression '^[a-z][a-zA-Z0-9]*$'.(«‰²«ÿÿÿÿÿ8À»éÉ/
+
+java:S1319‰"lThe type of the "A" object should be an interface such as "List" rather than the implementation "ArrayList".(«‰²«ÿÿÿÿÿ8À»éÉ/
+
+java:S1319W"lThe type of the "A" object should be an interface such as "List" rather than the implementation "ArrayList".(«‰²«ÿÿÿÿÿ8À»éÉ/
+c
+java:S2095Å"EUse try-with-resources or close this "Scanner" in a "finally" clause.(·¥‘¹8À»éÉ/
+m	java:S117o"QRename this local variable to match the regular expression '^[a-z][a-zA-Z0-9]*$'.(Á¾á…8À»éÉ/
+s	java:S117›"QRename this local variable to match the regular expression '^[a-z][a-zA-Z0-9]*$'.(áëÔıÿÿÿÿ8À»éÉ/
+I
+java:S1172‰"&Remove these unused method parameters.(«‰²«ÿÿÿÿÿ8À»éÉ/
+w
+java:S3012·"YUse "Arrays.copyOf", "Arrays.asList", "Collections.addAll" or "System.arraycopy" instead.(±¸¨â8À»éÉ/
+m	java:S117"QRename this local variable to match the regular expression '^[a-z][a-zA-Z0-9]*$'.(¨Œ£á8À»éÉ/
+“
+java:S1319®"pThe return type of this method should be an interface such as "List" rather than the implementation "ArrayList".(£’€¶ûÿÿÿÿ8À»éÉ/
+s	java:S117š"QRename this local variable to match the regular expression '^[a-z][a-zA-Z0-9]*$'.(¦¸›ùÿÿÿÿ8À»éÉ/
+m	java:S117"QRename this local variable to match the regular expression '^[a-z][a-zA-Z0-9]*$'.(»œ×ö8À»éÉ/
+
+java:S1319"lThe type of the "D" object should be an interface such as "List" rather than the implementation "ArrayList".(œ½ÿÓøÿÿÿÿ8À»éÉ/
+
+java:S1319›"lThe type of the "A" object should be an interface such as "List" rather than the implementation "ArrayList".(áëÔıÿÿÿÿ8À»éÉ/
+w
+java:S3012Ê"YUse "Arrays.copyOf", "Arrays.asList", "Collections.addAll" or "System.arraycopy" instead.(±¸¨â8À»éÉ/
+c
+java:S2095²"EUse try-with-resources or close this "Scanner" in a "finally" clause.(øÀ’á8À»éÉ/
+
+java:S1319é"lThe type of the "l" object should be an interface such as "List" rather than the implementation "ArrayList".(°¼øçúÿÿÿÿ8À»éÉ/
+
+java:S1319š"lThe type of the "D" object should be an interface such as "List" rather than the implementation "ArrayList".(¦¸›ùÿÿÿÿ8À»éÉ/
+W
+java:S4973ê"9Use the "equals" method if value comparison was intended.(°ÀŸ8À»éÉ/
+W
+java:S4973í"9Use the "equals" method if value comparison was intended.(”ìîŞ8À»éÉ/
+‰
+java:S1319o"lThe type of the "D" object should be an interface such as "List" rather than the implementation "ArrayList".(Á¾á…8À»éÉ/
+
+java:S1319V"lThe type of the "D" object should be an interface such as "List" rather than the implementation "ArrayList".(¡æÛÑıÿÿÿÿ8À»éÉ/
+‰
+java:S1319p"lThe type of the "A" object should be an interface such as "List" rather than the implementation "ArrayList".(ªãËÃ8À»éÉ/
+r	java:S117"QRename this local variable to match the regular expression '^[a-z][a-zA-Z0-9]*$'.(œ½ÿÓøÿÿÿÿ8À»éÉ/
+n	java:S117ˆ"QRename this local variable to match the regular expression '^[a-z][a-zA-Z0-9]*$'.(ãõœ8À»éÉ/
+1
+java:S1700"Rename field "edge"(–Ú™¼8À»éÉ/
+m	java:S117p"QRename this local variable to match the regular expression '^[a-z][a-zA-Z0-9]*$'.(ªãËÃ8À»éÉ/
+r	java:S117W"QRename this local variable to match the regular expression '^[a-z][a-zA-Z0-9]*$'.(«‰²«ÿÿÿÿÿ8À»éÉ/
+0
+java:S1220""Move this file to a named package.
+t
+java:S3776"RRefactor this method to reduce its Cognitive Complexity from 26 to the 15 allowed.(œ½ÿÓøÿÿÿÿ8À»éÉ/
+[
+java:S4973("9Use the "equals" method if value comparison was intended.(­²Ÿøÿÿÿÿ8À»éÉ/
+Š
+java:S1319ˆ"lThe type of the "D" object should be an interface such as "List" rather than the implementation "ArrayList".(ãõœ8À»éÉ/
+‰
+java:S1319"lThe type of the "A" object should be an interface such as "List" rather than the implementation "ArrayList".(»œ×ö8À»éÉ/
+V	java:S106İ"9Replace this use of System.out or System.err by a logger.(³Ñ»×8À»éÉ/
+r	java:S117"QRename this local variable to match the regular expression '^[a-z][a-zA-Z0-9]*$'.(¯®•øúÿÿÿÿ8À»éÉ/
+r	java:S117V"QRename this local variable to match the regular expression '^[a-z][a-zA-Z0-9]*$'.(¡æÛÑıÿÿÿÿ8À»éÉ/
+E
+java:S1172p"(Remove this unused method parameter "A".(ªãËÃ8À»éÉ/

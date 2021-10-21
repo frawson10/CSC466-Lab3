@@ -1,0 +1,18 @@
+
+n
+java:S2095"LUse try-with-resources or close this "BufferedReader" in a "finally" clause.(½ß×ıÿÿÿÿ8×ï·ØÉ/
+Z	java:S106/"9Replace this use of System.out or System.err by a logger.(ıøÜìüÿÿÿÿ8ç¬›éÉ/
+0
+java:S1220""Move this file to a named package.
+U	java:S1060"9Replace this use of System.out or System.err by a logger.(¡×ÈŠ8ü¼£éÉ/
+Z	java:S106-"9Replace this use of System.out or System.err by a logger.(Šë˜Ÿÿÿÿÿÿ8€À˜éÉ/
+[
+java:S4973J"9Use the "equals" method if value comparison was intended.(ŞÇ±Çıÿÿÿÿ8–ø²èÉ/
+Z	java:S106."9Replace this use of System.out or System.err by a logger.(³¤ë¶üÿÿÿÿ8ç¬›éÉ/
+X
+java:S1128"6Remove this unused import 'org.json.simple.JSONArray'.(àĞ›¢şÿÿÿÿ8¡©ÏêÉ/
+Z	java:S1061"9Replace this use of System.out or System.err by a logger.(ı¹ìüÿÿÿÿ8óµ¨éÉ/
+K
+java:S1125B")Remove the literal "false" boolean value.(²š‘òıÿÿÿÿ8¼Ú‹äÉ/
+o
+java:S3776@"RRefactor this method to reduce its Cognitive Complexity from 23 to the 15 allowed.(ç›¼8–ø²èÉ/
