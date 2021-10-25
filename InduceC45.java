@@ -1,6 +1,7 @@
 import java.io.*;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
 
@@ -10,9 +11,24 @@ import org.json.JSONObject;
 
 class InduceC45{
     public static void main(String[] args){
-        ArrayList<ArrayList<String>> D = getData();
+        ArrayList<ArrayList<String>> D = getData("agaricus-lepiota.csv");
         ArrayList<ArrayList<String>> A = new ArrayList<>();
-        ArrayList<String> restrictions = readRestrictions();
+        ArrayList<String> restrictions = readRestrictions("restrictions.txt");
+        A.add(D.get(0));
+        A.add(D.get(1));
+        A.add(restrictions);
+        String classVar = D.get(2).get(0);
+        D.remove(0);
+        D.remove(0);
+        D.remove(0);
+        double threshold = 0.05;
+        Node tree = c45(D, A, threshold, classVar);
+        printJSON(tree, "agaricus-lepiota.csv");
+    }
+
+    public static JSONObject run(List<ArrayList<String>> D, String training, String restrictionsFile){
+        ArrayList<ArrayList<String>> A = new ArrayList<>();
+        ArrayList<String> restrictions = readRestrictions(restrictionsFile);
         A.add(D.get(0));
         A.add(D.get(1));
         A.add(restrictions);
@@ -22,10 +38,12 @@ class InduceC45{
         D.remove(0);
         double threshold = 0.15;
         Node tree = c45(D, A, threshold, classVar);
-        createJSON(tree, "adult-stretch.csv");
+        JSONObject json = createJSON(tree, training);
+        // printJSON(tree, training);
+        return json;
     }
 
-    public static Node c45(ArrayList<ArrayList<String>> D, 
+    public static Node c45(List<ArrayList<String>> D, 
         ArrayList<ArrayList<String>> A, double threshold, String classVar){
         int classVarLoc = -1;
         for(int i = 0; i<A.get(0).size(); i++){
@@ -78,12 +96,28 @@ class InduceC45{
                     Node subTree = c45(set.getValue(), newA, threshold, classVar);
                     tree.addEdge(set.getKey(), subTree);
                 }
+                if(tree.edges.size() < Integer.valueOf(A.get(1).get(splittingAtt))){
+                    // System.out.println(A.get(0).get(splittingAtt));
+
+                    ArrayList<String> missingLabels = new ArrayList<>();
+                    /* while((Integer.valueOf(A.get(1).get(splittingAtt))-tree.edges.size()) != 0){
+                        
+                    } */
+                    for(int i=0; i<D.size(); i++){
+                        if(splits.get(D.get(i).get(splittingAtt)) != null){
+                            // System.out.println(D.get(i).get(splittingAtt));
+                            Pair winner = popularityContest(D, A, classVarLoc);
+                            Node n = new Node("", winner.att, null, winner.popularity/Double.valueOf(D.size()));
+                            tree.addEdge("ghost", n);
+                        }
+                    }
+                }
                 return tree;
             }
         }
     }
 
-    public static Integer selectSplittingAttribute(ArrayList<ArrayList<String>> D, 
+    public static Integer selectSplittingAttribute(List<ArrayList<String>> D, 
     ArrayList<ArrayList<String>> A, double threshold, Integer classVarLoc){
         double p0 = baseEntropy(D, A, threshold, classVarLoc);
         HashMap<Integer, Double> gains = new HashMap<>();
@@ -108,7 +142,7 @@ class InduceC45{
         }
     }
 
-    public static Pair popularityContest(ArrayList<ArrayList<String>> D, 
+    public static Pair popularityContest(List<ArrayList<String>> D, 
     ArrayList<ArrayList<String>> A, int classVarLoc){
         HashMap<String, Integer> score = new HashMap<>();
         for(ArrayList<String> point : D){
@@ -133,7 +167,7 @@ class InduceC45{
         return Math.log(num)/Math.log(2);
     }
 
-    public static double baseEntropy(ArrayList<ArrayList<String>> D,
+    public static double baseEntropy(List<ArrayList<String>> D,
     ArrayList<ArrayList<String>> A, double threshold, Integer classVarLoc){
         HashMap<String, Integer> score = new HashMap<>();
         for(ArrayList<String> point : D){
@@ -151,7 +185,7 @@ class InduceC45{
         return entropy;
     }
 
-    public static double attEntropy(ArrayList<ArrayList<String>> D,
+    public static double attEntropy(List<ArrayList<String>> D,
     ArrayList<ArrayList<String>> A, double threshold, Integer classVarLoc, int attIdx){
         HashMap<String, ArrayList<ArrayList<String>>> splits = new HashMap<>();
         for(ArrayList<String> point : D){
@@ -171,11 +205,11 @@ class InduceC45{
         return entropy;
     }
 
-    public static ArrayList<ArrayList<String>> getData(){
+    public static ArrayList<ArrayList<String>> getData(String path){
         Scanner sc;
         ArrayList<ArrayList<String>> data = new ArrayList<>();
         try {
-            sc = new Scanner(new File("agaricus-lepiota.csv"));
+            sc = new Scanner(new File(path));
             while (sc.hasNextLine()){
                 ArrayList<String> lineVals = new ArrayList<>();
                 String[] line = sc.nextLine().split(",");
@@ -190,11 +224,11 @@ class InduceC45{
         return data;
     }
 
-    public static ArrayList<String> readRestrictions(){
+    public static ArrayList<String> readRestrictions(String path){
         Scanner sc;
         ArrayList<String> restrictions = new ArrayList<>();
         try {
-            sc = new Scanner(new File("restrictions.txt"));
+            sc = new Scanner(new File(path));
             while (sc.hasNextLine()){
                 ArrayList<String> lineVals = new ArrayList<>();
                 String[] line = sc.nextLine().split(",");
@@ -209,7 +243,23 @@ class InduceC45{
         return restrictions;
     }
 
-    public static void createJSON(Node tree, String dataSetFile){
+    public static JSONObject createJSON(Node tree, String dataSetFile){
+        JSONObject json = new JSONObject();
+        try {
+            json.put("dataset", dataSetFile);
+            if(tree.edges != null){
+                json.put("node", tree.toJSON());
+            } else{
+                json.put("leaf", tree.toJSON());
+            }
+            return json;
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        return json;
+    }
+
+    public static void printJSON(Node tree, String dataSetFile){
         JSONObject json = new JSONObject();
         try {
             json.put("dataset", dataSetFile);
